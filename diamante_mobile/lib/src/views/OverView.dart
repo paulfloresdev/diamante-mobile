@@ -1,5 +1,5 @@
 import 'package:diamante_mobile/src/models/auxiliars/Responsive.dart';
-import 'package:diamante_mobile/src/widgets/Header/Header.dart';
+import 'package:diamante_mobile/src/widgets/Header.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -23,13 +23,6 @@ class _OverViewState extends State<OverView> {
         child: ListView(
           children: [
             Header(page: 0),
-            SizedBox(height: 1.5 * vw),
-            Container(
-              width: 95 * vw,
-              height: 0.075 * vw,
-              decoration: BoxDecoration(color: Colors.grey.shade500),
-            ),
-            SizedBox(height: 1.5 * vw),
             SizedBox(
               width: 95 * vw,
               child: Row(

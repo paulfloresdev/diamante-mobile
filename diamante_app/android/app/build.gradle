@@ -1,0 +1,77 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+android {
+    namespace "com.example.diamante_app"
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId "com.example.myapp" // Cambia por el ID de tu app
+        minSdkVersion 21 // Recomendado para Flutter
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true // Si tienes múltiples dependencias que lo requieren
+    }
+
+    buildTypes {
+        release {
+            // Configuración de optimización para builds de producción
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                '/META-INF/{AL2.0,LGPL2.1}',
+                '/META-INF/licenses/**',
+                '/META-INF/notice/**'
+            ]
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.10" // Asegúrate de usar la misma versión en todo el proyecto
+    implementation 'androidx.core:core-ktx:1.9.0' // Dependencia común
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.1" // Opcional, para flujo reactivo
+}
+
+// Flutter necesita esta sección
+flutter {
+    source '../..'
+}
+

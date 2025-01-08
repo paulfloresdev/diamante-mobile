@@ -57,6 +57,12 @@ class DatabaseService {
     ''');
   }
 
+  Future<String> printDatabasePath() async {
+    final databasesPath = await getDatabasesPath();
+    print('Database path: $databasesPath');
+    return databasesPath;
+  }
+
   // CRUD para Grupos
   Future<int> createGrupo(String nombre) async {
     final db = await instance.database;
