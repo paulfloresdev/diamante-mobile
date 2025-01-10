@@ -4,7 +4,12 @@ import '../models/auxiliars/Responsive.dart';
 class Input extends StatefulWidget {
   final TextEditingController controller;
   final String hint;
-  const Input({super.key, required this.controller, required this.hint});
+  final TextInputType? keyboardType;
+  const Input(
+      {super.key,
+      required this.controller,
+      required this.hint,
+      this.keyboardType});
 
   @override
   State<Input> createState() => _InputState();
@@ -20,6 +25,7 @@ class _InputState extends State<Input> {
       height: 4 * vw,
       child: TextField(
         controller: widget.controller,
+        keyboardType: widget.keyboardType,
         decoration: InputDecoration(
           hintText: widget.hint,
           hintStyle: TextStyle(color: Colors.grey.shade700),

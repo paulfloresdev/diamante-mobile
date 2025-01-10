@@ -29,7 +29,7 @@ class _OptionButtonState extends State<OptionButton> {
 
     return Container(
       width: widget.width,
-      height: 5 * vw,
+      height: 4.5 * vw,
       margin: widget.margin,
       padding: EdgeInsets.symmetric(horizontal: 1.5 * vw),
       decoration: BoxDecoration(

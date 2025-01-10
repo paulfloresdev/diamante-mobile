@@ -1,4 +1,6 @@
+import 'package:diamante_app/src/database/DatabaseService.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import '../models/auxiliars/Router.dart';
 import '../views/GroupView.dart';
 import 'OptionButton.dart';
@@ -31,14 +33,28 @@ class GroupOption extends StatefulWidget {
 class _GroupOptionState extends State<GroupOption> {
   get isFocused => null;
 
+  Future<int> getFirstId() async {
+    final data =
+        await DatabaseService.instance.getSubgruposByGrupo(widget.groupId);
+    if (data.isEmpty) {
+      return 0;
+    } else {
+      return data.first['id'];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onPressed ??
-          () => Routes(context).goTo(GroupView(
-                groupId: widget.groupId,
-                subGroupId: 0,
-              )),
+          () async {
+            final subgroupId = await getFirstId();
+
+            Routes(context).goTo(GroupView(
+              groupId: widget.groupId,
+              subGroupId: subgroupId,
+            ));
+          },
       onLongPress: widget.onLongPress,
       child: OptionButton(
         label: widget.label,

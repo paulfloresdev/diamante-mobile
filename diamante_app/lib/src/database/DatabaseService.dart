@@ -54,24 +54,8 @@ class DatabaseService {
         precio_unitario REAL NOT NULL,
         cantidad INTEGER NOT NULL,
         importe_total REAL NOT NULL,
+        is_selected BOOLEAN NOT NULL DEFAULT 0,
         subgrupo_id INTEGER NOT NULL,
-        FOREIGN KEY (subgrupo_id) REFERENCES subgrupos (id) ON DELETE CASCADE
-      )
-    ''');
-
-    // Crear tabla de Productos Seleccionados
-    await db.execute('''
-      CREATE TABLE productos_seleccionados (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        producto_id INTEGER NOT NULL,
-        nombre_producto TEXT NOT NULL,
-        precio_unitario REAL NOT NULL,
-        cantidad INTEGER NOT NULL,
-        importe_total REAL NOT NULL,
-        grupo_id INTEGER NOT NULL,
-        subgrupo_id INTEGER NOT NULL,
-        FOREIGN KEY (producto_id) REFERENCES productos (id) ON DELETE CASCADE,
-        FOREIGN KEY (grupo_id) REFERENCES grupos (id) ON DELETE CASCADE,
         FOREIGN KEY (subgrupo_id) REFERENCES subgrupos (id) ON DELETE CASCADE
       )
     ''');
@@ -124,15 +108,70 @@ class DatabaseService {
         .query('subgrupos', where: 'grupo_id = ?', whereArgs: [grupoId]);
   }
 
+  Future<int> updateSubgrupo(int id, String nombre) async {
+    final db = await instance.database;
+    return await db.update(
+      'subgrupos',
+      {
+        'nombre': nombre,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<int> deleteSubgrupo(int id) async {
     final db = await instance.database;
     return await db.delete('subgrupos', where: 'id = ?', whereArgs: [id]);
   }
 
   // CRUD para Productos
-  Future<int> createProducto(Map<String, dynamic> producto) async {
+  Future<int> createProducto({
+    required String concepto,
+    required String tipoUnidad,
+    required double precioUnitario,
+    required int cantidad,
+    required double importeTotal,
+    bool isSelected = false,
+    required int subgrupoId,
+  }) async {
     final db = await instance.database;
-    return await db.insert('productos', producto);
+
+    return await db.insert('productos', {
+      'concepto': concepto,
+      'tipo_unidad': tipoUnidad,
+      'precio_unitario': precioUnitario,
+      'cantidad': cantidad,
+      'importe_total': importeTotal,
+      'is_selected': isSelected ? 1 : 0, // Convertimos booleano a 0/1.
+      'subgrupo_id': subgrupoId,
+    });
+  }
+
+  Future<int> updateProducto({
+    required int id,
+    required String concepto,
+    required String tipoUnidad,
+    required double precioUnitario,
+    required int cantidad,
+    required double importeTotal,
+    required int subgrupoId,
+  }) async {
+    final db = await instance.database;
+
+    return await db.update(
+      'productos', // Nombre de la tabla
+      {
+        'concepto': concepto,
+        'tipo_unidad': tipoUnidad,
+        'precio_unitario': precioUnitario,
+        'cantidad': cantidad,
+        'importe_total': importeTotal,
+        'subgrupo_id': subgrupoId,
+      },
+      where: 'id = ?', // Condición para encontrar el producto
+      whereArgs: [id], // Argumentos para la condición
+    );
   }
 
   Future<List<Map<String, dynamic>>> getProductosBySubgrupo(
@@ -142,52 +181,29 @@ class DatabaseService {
         .query('productos', where: 'subgrupo_id = ?', whereArgs: [subgrupoId]);
   }
 
+  Future<int> updateProductoSeleccion(int id, bool isSelected) async {
+    final db = await instance.database;
+    return await db.update(
+      'productos',
+      {'is_selected': isSelected ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getProductosSeleccionados(
+      int subgrupoId) async {
+    final db = await instance.database;
+    return await db.query(
+      'productos',
+      where: 'subgrupo_id = ? AND is_selected = ?',
+      whereArgs: [subgrupoId, 1],
+    );
+  }
+
   Future<int> deleteProducto(int id) async {
     final db = await instance.database;
     return await db.delete('productos', where: 'id = ?', whereArgs: [id]);
-  }
-
-  // CRUD para Productos Seleccionados
-  Future<int> createProductoSeleccionado(
-      Map<String, dynamic> productoSeleccionado) async {
-    final db = await instance.database;
-    return await db.insert('productos_seleccionados', productoSeleccionado);
-  }
-
-  Future<List<Map<String, dynamic>>> getProductosSeleccionadosPorGrupo(
-      int grupoId) async {
-    final db = await instance.database;
-
-    // Realizamos la consulta con JOINs para obtener los nombres de los grupos y subgrupos
-    final result = await db.rawQuery('''
-      SELECT ps.id, ps.producto_id, ps.nombre_producto, ps.precio_unitario, 
-             ps.cantidad, ps.importe_total, g.nombre AS grupo_nombre, 
-             sg.nombre AS subgrupo_nombre
-      FROM productos_seleccionados ps
-      JOIN grupos g ON ps.grupo_id = g.id
-      JOIN subgrupos sg ON ps.subgrupo_id = sg.id
-      WHERE ps.grupo_id = ?
-    ''', [grupoId]);
-
-    return result;
-  }
-
-  Future<List<Map<String, dynamic>>> getProductosSeleccionadosPorSubgrupo(
-      int subgrupoId) async {
-    final db = await instance.database;
-
-    // Realizamos la consulta con JOINs para obtener los nombres de los grupos y subgrupos
-    final result = await db.rawQuery('''
-      SELECT ps.id, ps.producto_id, ps.nombre_producto, ps.precio_unitario, 
-             ps.cantidad, ps.importe_total, g.nombre AS grupo_nombre, 
-             sg.nombre AS subgrupo_nombre
-      FROM productos_seleccionados ps
-      JOIN grupos g ON ps.grupo_id = g.id
-      JOIN subgrupos sg ON ps.subgrupo_id = sg.id
-      WHERE ps.subgrupo_id = ?
-    ''', [subgrupoId]);
-
-    return result;
   }
 
   Future<void> close() async {

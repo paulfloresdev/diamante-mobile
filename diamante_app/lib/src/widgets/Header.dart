@@ -385,7 +385,7 @@ class _HeaderState extends State<Header> {
                 ),
                 Container(
                   width: 77 * vw,
-                  height: 5 * vw,
+                  height: 4.5 * vw,
                   child: FutureBuilder<List<Map<String, dynamic>>>(
                     future: _futureGroups,
                     builder: (context,
@@ -393,7 +393,7 @@ class _HeaderState extends State<Header> {
                       if (!snapshot.hasData) {
                         return Text('Cargando...');
                       } else if (snapshot.data!.isEmpty) {
-                        return Text('Vacía');
+                        return Text('');
                       } else {
                         final groups = snapshot.data!;
                         return ListView.builder(
