@@ -316,7 +316,7 @@ class _HeaderState extends State<Header> {
     var vw = responsive.viewportWidth;
 
     return Container(
-      margin: EdgeInsets.only(top: 1.5 * vw),
+      padding: EdgeInsets.only(left: 2.5 * vw, right: 2.5 * vw, top: 4.5 * vw),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

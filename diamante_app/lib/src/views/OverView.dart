@@ -19,11 +19,14 @@ class _OverViewState extends State<OverView> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).splashColor,
+      appBar: PreferredSize(
+        preferredSize: Size(100 * vw, 15.5 * vw),
+        child: Header(page: 0),
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.5 * vw),
         child: ListView(
           children: [
-            Header(page: 0),
             SizedBox(
               width: 95 * vw,
               child: Row(

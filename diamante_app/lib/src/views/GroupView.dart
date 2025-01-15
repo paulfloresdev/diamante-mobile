@@ -108,7 +108,10 @@ class _GroupViewState extends State<GroupView> {
           onConfirm: () => editSubGroup(editController.text.trim(), subgroupId),
           confirmLabel: 'Guardar',
           onDecline: () async {
-            final bool confirmDelete = await _showDeleteConfirmationDialog();
+            final bool confirmDelete = await _showDeleteConfirmationDialog(
+                title: 'Eliminar subgrupo',
+                subTitle:
+                    '¿Estás seguro que deseas eliminarlo?, todos los datos se perderán.');
 
             if (confirmDelete) {
               await DatabaseService.instance.deleteSubgrupo(subgroupId);
@@ -145,16 +148,34 @@ class _GroupViewState extends State<GroupView> {
     );
   }
 
-  Future<bool> _showDeleteConfirmationDialog() async {
+  Future<bool> _showDeleteConfirmationDialog(
+      {required String title, required String subTitle}) async {
     return (await showDialog<bool>(
           context: context,
           builder: (BuildContext context) {
             return ConfirmDialog(
-              title: 'Confirmar Eliminación',
-              subTitle:
-                  '¿Estás seguro de que deseas eliminar este grupo?\nTodos los datos contenidos en él también se perderán.',
+              title: title,
+              subTitle: subTitle,
               confirmLabel: 'Eliminar',
               confirmColor: Colors.redAccent.shade700,
+              declineLabel: 'Cancelar',
+              declineColor: Colors.grey.shade700,
+            );
+          },
+        )) ??
+        false; // Devuelve false si el valor retornado es nulo
+  }
+
+  Future<bool> _showConfirmationDialog(
+      {required String title, required String subTitle}) async {
+    return (await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return ConfirmDialog(
+              title: title,
+              subTitle: subTitle,
+              confirmLabel: 'Aceptar',
+              confirmColor: Theme.of(context).primaryColorDark,
               declineLabel: 'Cancelar',
               declineColor: Colors.grey.shade700,
             );
@@ -202,6 +223,11 @@ class _GroupViewState extends State<GroupView> {
       CustomSnackBar(context: context)
           .show('El producto no puede tener campos vacíos.');
     }
+
+    _conceptoController.clear();
+    _unidadController.clear();
+    _cantidadController.clear();
+    _precioUnitarioController.clear();
   }
 
   void _showAddProductDialog() {
@@ -370,7 +396,7 @@ class _GroupViewState extends State<GroupView> {
     } else {
       CustomSnackBar(context: context).show('Algo ha salido mal');
     }
-    Navigator.pop(context);
+    Navigator.of(context).pop();
     _reload();
   }
 
@@ -570,11 +596,14 @@ class _GroupViewState extends State<GroupView> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).splashColor,
+      appBar: PreferredSize(
+        preferredSize: Size(100 * vw, 15.5 * vw),
+        child: Header(page: widget.groupId),
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.5 * vw),
         child: ListView(
           children: [
-            Header(page: widget.groupId),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -673,218 +702,257 @@ class _GroupViewState extends State<GroupView> {
                     ],
                   ),
                 ),
-                Container(
-                  width: 73.5 * vw,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.maxFinite,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'PRODUCTOS',
-                              style: TextStyle(
-                                fontSize: 1.6 * vw,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                !isOpen
-                                    ? TxtButton(
-                                        onTap: () {
-                                          setState(() {
-                                            isOpen = true;
-                                          });
-                                        },
-                                        label: 'Seleccionar',
-                                      )
-                                    : SizedBox(),
-                                !isOpen
-                                    ? TxtButton(
-                                        onTap: _showAddProductDialog,
-                                        label: 'Añadir producto',
-                                        margin: EdgeInsets.only(left: 1.5 * vw),
-                                      )
-                                    : SizedBox(),
-                                isOpen
-                                    ? TxtButton(
-                                        onTap: () {
-                                          setState(() {
-                                            isOpen = false;
-                                          });
-                                        },
-                                        label: '  X  ',
-                                        margin: EdgeInsets.only(left: 1.5 * vw),
-                                      )
-                                    : SizedBox(),
-                                isOpen
-                                    ? TxtButton(
-                                        onTap: () {},
-                                        label: 'Seleccionar todos',
-                                        margin: EdgeInsets.only(left: 1.5 * vw),
-                                      )
-                                    : SizedBox(),
-                                isOpen
-                                    ? TxtButton(
-                                        onTap: () {},
-                                        label: 'Aceptar y enviar',
-                                        margin: EdgeInsets.only(left: 1.5 * vw),
-                                      )
-                                    : SizedBox(),
-                                isOpen
-                                    ? TxtButton(
-                                        onTap: () {},
-                                        label: 'Eliminar de la propuesta',
-                                        margin: EdgeInsets.only(left: 1.5 * vw),
-                                      )
-                                    : SizedBox(),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 0.75 * vw),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              isOpen
-                                  ? 'Productos seleccionados (${pickedItems.length})'
-                                  : '',
-                            ),
-                          ],
-                        ),
-                      ),
-                      FutureBuilder<List<Map<String, dynamic>>>(
-                        future: _futureProducts,
-                        builder: (context,
-                            AsyncSnapshot<List<Map<String, dynamic>>>
-                                snapshot) {
-                          if (!snapshot.hasData) {
-                            return SizedBox();
-                          }
-                          var products = snapshot.data!;
-                          if (products.isEmpty) {
-                            return Text('Empty');
-                          }
-                          return Container(
-                            width: 73.5 * vw,
-                            height: 21.25 * vw * products.length,
-                            child: ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: products.length,
-                              itemBuilder: (context, index) {
-                                var product = products[index];
-                                return ProductCard(
-                                  isPicked: pickedItems.contains(product['id']),
-                                  isOpen: isOpen,
-                                  onTap: () => _showEditProductDialog(product),
-                                  product: product,
-                                  //aqui
-                                  onLongPress: () {
-                                    setState(() {
-                                      if (isOpen) {
-                                        pickedItems.clear();
-                                      }
-                                      isOpen = !isOpen;
-                                    });
-                                  },
-                                  onPick: () {
-                                    setState(() {
-                                      if (pickedItems.contains(product['id'])) {
-                                        pickedItems.removeWhere((element) =>
-                                            element == product['id']);
-                                      } else {
-                                        pickedItems.add(product['id']);
-                                      }
-                                    });
-                                  },
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      )
-                      /*Container(
+                widget.subGroupId == 0
+                    ? SizedBox()
+                    : Container(
                         width: 73.5 * vw,
-                        height: 4 * vw,
-                        color: Theme.of(context).primaryColorDark,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 38.5 * vw,
-                              child: Center(
-                                child: Text(
-                                  'Concepto',
-                                  style: TextStyle(
-                                    fontSize: 1.2 * vw,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).splashColor,
+                        child: FutureBuilder<List<Map<String, dynamic>>>(
+                          future: _futureProducts,
+                          builder: (context,
+                              AsyncSnapshot<List<Map<String, dynamic>>>
+                                  snapshot) {
+                            if (!snapshot.hasData) {
+                              return SizedBox();
+                            }
+                            var products = snapshot.data!;
+                            return Column(
+                              children: [
+                                Container(
+                                  width: double.maxFinite,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'PRODUCTOS',
+                                        style: TextStyle(
+                                          fontSize: 1.6 * vw,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          !isOpen && products.isNotEmpty
+                                              ? TxtButton(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      isOpen = true;
+                                                    });
+                                                  },
+                                                  label: 'Seleccionar',
+                                                )
+                                              : SizedBox(),
+                                          !isOpen
+                                              ? TxtButton(
+                                                  onTap: _showAddProductDialog,
+                                                  label: 'Añadir producto',
+                                                  margin: EdgeInsets.only(
+                                                      left: 1.5 * vw),
+                                                )
+                                              : SizedBox(),
+                                          isOpen
+                                              ? TxtButton(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      isOpen = false;
+                                                      pickedItems.clear();
+                                                    });
+                                                  },
+                                                  label: '  X  ',
+                                                  margin: EdgeInsets.only(
+                                                      left: 1.5 * vw),
+                                                )
+                                              : SizedBox(),
+                                          isOpen
+                                              ? TxtButton(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      var unselected = [];
+                                                      for (int i = 0;
+                                                          i < products.length;
+                                                          i++) {
+                                                        if (products[i][
+                                                                'is_selected'] ==
+                                                            0) {
+                                                          unselected
+                                                              .add(products[i]);
+                                                        }
+                                                      }
+                                                      if (pickedItems.length ==
+                                                          unselected.length) {
+                                                        pickedItems.clear();
+                                                      } else {
+                                                        pickedItems.clear();
+                                                        for (int i = 0;
+                                                            i < products.length;
+                                                            i++) {
+                                                          if (products[i][
+                                                                  'is_selected'] ==
+                                                              0) {
+                                                            pickedItems.add(
+                                                                products[i]
+                                                                    ['id']);
+                                                          }
+                                                        }
+                                                      }
+                                                    });
+                                                  },
+                                                  label: 'Seleccionar todos',
+                                                  margin: EdgeInsets.only(
+                                                      left: 1.5 * vw),
+                                                )
+                                              : SizedBox(),
+                                          isOpen
+                                              ? TxtButton(
+                                                  onTap: () async {
+                                                    if (pickedItems.isEmpty) {
+                                                      CustomSnackBar(
+                                                              context: context)
+                                                          .show(
+                                                              'No hay productos seleccionados.');
+                                                    } else {
+                                                      final bool confirmSend =
+                                                          await _showConfirmationDialog(
+                                                              title:
+                                                                  'Aceptar y enviar',
+                                                              subTitle:
+                                                                  'Este producto se enviará a la cotización final.');
+                                                      if (confirmSend) {
+                                                        for (int i = 0;
+                                                            i <
+                                                                pickedItems
+                                                                    .length;
+                                                            i++) {
+                                                          DatabaseService
+                                                              .instance
+                                                              .updateProductoSeleccion(
+                                                                  pickedItems[
+                                                                      i],
+                                                                  true);
+                                                        }
+                                                        setState(() {
+                                                          pickedItems.clear();
+                                                          isOpen = false;
+                                                        });
+                                                        _reload();
+                                                      }
+                                                    }
+                                                  },
+                                                  label: 'Aceptar y enviar',
+                                                  margin: EdgeInsets.only(
+                                                      left: 1.5 * vw),
+                                                )
+                                              : SizedBox(),
+                                          isOpen
+                                              ? TxtButton(
+                                                  onTap: () async {
+                                                    if (pickedItems.isEmpty) {
+                                                      CustomSnackBar(
+                                                              context: context)
+                                                          .show(
+                                                              'No hay productos seleccionados.');
+                                                    } else {
+                                                      final bool confirmDelete =
+                                                          await _showDeleteConfirmationDialog(
+                                                              title:
+                                                                  'Eliminar producto(s)',
+                                                              subTitle:
+                                                                  '¿Estás seguro que deseas eliminarlo(s)?, todos los datos se perderán.');
+                                                      if (confirmDelete) {
+                                                        for (int i = 0;
+                                                            i <
+                                                                pickedItems
+                                                                    .length;
+                                                            i++) {
+                                                          DatabaseService
+                                                              .instance
+                                                              .deleteProducto(
+                                                                  pickedItems[
+                                                                      i]);
+                                                        }
+                                                        setState(() {
+                                                          pickedItems.clear();
+                                                          isOpen = false;
+                                                        });
+                                                        _reload();
+                                                      }
+                                                    }
+                                                  },
+                                                  label:
+                                                      'Eliminar de la propuesta',
+                                                  margin: EdgeInsets.only(
+                                                      left: 1.5 * vw),
+                                                )
+                                              : SizedBox(),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 7.5 * vw,
-                              child: Center(
-                                child: Text(
-                                  'Unidad',
-                                  style: TextStyle(
-                                    fontSize: 1.2 * vw,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).splashColor,
+                                Padding(
+                                  padding: EdgeInsets.only(top: 0.75 * vw),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        isOpen
+                                            ? 'Productos seleccionados (${pickedItems.length})'
+                                            : '',
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 7.5 * vw,
-                              child: Center(
-                                child: Text(
-                                  'Cantidad',
-                                  style: TextStyle(
-                                    fontSize: 1.2 * vw,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).splashColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10 * vw,
-                              child: Center(
-                                child: Text(
-                                  'Precio unitario',
-                                  style: TextStyle(
-                                    fontSize: 1.2 * vw,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).splashColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10 * vw,
-                              child: Center(
-                                child: Text(
-                                  'Cantidad total',
-                                  style: TextStyle(
-                                    fontSize: 1.2 * vw,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).splashColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                                products.isNotEmpty
+                                    ? Container(
+                                        width: 73.5 * vw,
+                                        height: 13.5 * vw * products.length,
+                                        child: ListView.builder(
+                                          physics:
+                                              NeverScrollableScrollPhysics(),
+                                          itemCount: products.length,
+                                          itemBuilder: (context, index) {
+                                            var product = products[index];
+                                            return ProductCard(
+                                              isPicked: pickedItems
+                                                  .contains(product['id']),
+                                              isOpen: isOpen,
+                                              onTap: () =>
+                                                  _showEditProductDialog(
+                                                      product),
+                                              product: product,
+                                              //aqui
+                                              onLongPress: () {
+                                                setState(() {
+                                                  if (isOpen) {
+                                                    pickedItems.clear();
+                                                  }
+                                                  isOpen = !isOpen;
+                                                });
+                                              },
+                                              onPick: () {
+                                                setState(() {
+                                                  if (pickedItems.contains(
+                                                      product['id'])) {
+                                                    pickedItems.removeWhere(
+                                                        (element) =>
+                                                            element ==
+                                                            product['id']);
+                                                  } else {
+                                                    pickedItems
+                                                        .add(product['id']);
+                                                  }
+                                                });
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    : Text('No se encontraron productos.'),
+                              ],
+                            );
+                          },
                         ),
-                      ),*/
-                    ],
-                  ),
-                ),
+                      ),
               ],
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../models/auxiliars/Responsive.dart';
 
@@ -24,6 +25,14 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
+  late bool isSelected;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    isSelected = widget.product['is_selected'] == 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     var responsive = Responsive(context);
@@ -44,7 +53,9 @@ class _ProductCardState extends State<ProductCard> {
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 0.1 * vw,
-                  color: Theme.of(context).primaryColor,
+                  color: isSelected
+                      ? Colors.grey.shade300
+                      : Theme.of(context).primaryColor,
                 ),
               ),
               child: Column(
@@ -55,86 +66,107 @@ class _ProductCardState extends State<ProductCard> {
                     style: TextStyle(
                       fontSize: 1.4 * vw,
                       fontWeight: FontWeight.w600,
-                      color: Theme.of(context).primaryColor,
+                      color: isSelected
+                          ? Colors.grey.shade600
+                          : Theme.of(context).primaryColor,
                     ),
                   ),
-                  SizedBox(height: 0.75 * vw),
+                  SizedBox(height: 0.25 * vw),
                   Row(
                     children: [
-                      Text(
-                        'Unidad: ',
-                        style: TextStyle(
-                          fontSize: 1.2 * vw,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
                       Text(
                         widget.product['tipo_unidad'],
                         style: TextStyle(
                           fontSize: 1.2 * vw,
                           fontWeight: FontWeight.w400,
-                          color: Theme.of(context).primaryColor,
+                          color: isSelected
+                              ? Colors.grey.shade600
+                              : Theme.of(context).primaryColor,
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 0.75 * vw),
-                  Row(
-                    children: [
-                      Text(
-                        'Cantidad: ',
-                        style: TextStyle(
-                          fontSize: 1.2 * vw,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).primaryColor,
+                  Container(
+                    width: widget.isOpen ? 66.5 * vw : 70.5 * vw,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          width: 15.5 * vw,
+                          color: widget.product['is_selected'] == 1
+                              ? Colors.grey.shade300
+                              : Colors.transparent,
+                          padding: EdgeInsets.all(0.75 * vw),
+                          child: widget.product['is_selected'] == 1
+                              ? Center(
+                                  child: Text(
+                                    'Agregado a la Cotización',
+                                    style: TextStyle(
+                                      fontSize: 1.2 * vw,
+                                      fontWeight: FontWeight.w400,
+                                      color: isSelected
+                                          ? Colors.grey.shade600
+                                          : Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                )
+                              : null,
                         ),
-                      ),
-                      Text(
-                        widget.product['cantidad'].toString(),
-                        style: TextStyle(
-                          fontSize: 1.2 * vw,
-                          fontWeight: FontWeight.w400,
-                          color: Theme.of(context).primaryColor,
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    moneyFormat(
+                                        widget.product['precio_unitario']),
+                                    style: TextStyle(
+                                      fontSize: 1.2 * vw,
+                                      fontWeight: FontWeight.w400,
+                                      color: isSelected
+                                          ? Colors.grey.shade600
+                                          : Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                  SizedBox(width: 0.75 * vw),
+                                  Text(
+                                    'x ${widget.product['cantidad']}',
+                                    style: TextStyle(
+                                      fontSize: 1.4 * vw,
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected
+                                          ? Colors.grey.shade600
+                                          : Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 0.75 * vw),
+                              Text(
+                                moneyFormat(widget.product['importe_total']),
+                                style: TextStyle(
+                                  fontSize: 1.4 * vw,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.grey.shade600
+                                      : Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 0.75 * vw),
-                  Row(
-                    children: [
-                      Text(
-                        'Precio unitario: ',
-                        style: TextStyle(
-                          fontSize: 1.2 * vw,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                      Text(
-                        '\$${widget.product['precio_unitario']}',
-                        style: TextStyle(
-                          fontSize: 1.2 * vw,
-                          fontWeight: FontWeight.w400,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 2.25 * vw),
-                  Text(
-                    '\$${widget.product['importe_total']}',
-                    style: TextStyle(
-                      fontSize: 1.4 * vw,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).primaryColor,
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          widget.isOpen
+          widget.isOpen && !isSelected
               ? GestureDetector(
                   onTap: widget.onPick,
                   child: Container(
@@ -164,5 +196,15 @@ class _ProductCardState extends State<ProductCard> {
         ],
       ),
     );
+  }
+
+  String moneyFormat(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_US', // Usa 'es_MX' si prefieres formato español-mexicano
+      symbol: '\$', // Símbolo de moneda
+      decimalDigits: 2, // Cantidad de decimales
+    );
+
+    return formatter.format(amount);
   }
 }
